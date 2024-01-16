@@ -1,11 +1,29 @@
-namespace assignment2
+namespace banktask
 {
-    class BankClient
+    class InvalidAccNoException : ApplicationException
     {
-        
+        public InvalidAccNoException(string message):base(message){}
+    }
+    
+    class InvalidBalException : ApplicationException
+    {
+        public InvalidBalException(string message):base(message){}
+    }
+
+    class DepositException : ApplicationException
+    {
+        public DepositException(string message):base(message){}
+    }
+
+    class WithdrawException : ApplicationException
+    {
+        public WithdrawException(string message):base(message){}
+    }
+    class BankClient
+    {        
         public static void Main()
         {
-            Console.Write("Available choice: ");
+            Console.WriteLine("Available choice: ");
             Console.WriteLine("1. New Account");
             Console.WriteLine("2. Get Account Details");
             Console.WriteLine("3. Get All Accounts");
@@ -25,8 +43,11 @@ namespace assignment2
                 switch (choice)
                 {
                     case 1:
+                        int accno;
+                        decimal balance;
+
                         Console.WriteLine("Enter Account Number:");
-                        int accno = Convert.ToInt32(Console.ReadLine());
+                        int.TryParse(Console.ReadLine(),out accno);
 
                         Console.WriteLine("Enter Customer Name:");
                         string name = Console.ReadLine();
@@ -35,32 +56,47 @@ namespace assignment2
                         string address = Console.ReadLine();
 
                         Console.WriteLine("Enter Initial current Balance:");
-                        decimal balance = decimal.Parse(Console.ReadLine());
-
-                        SBAccount newAccount = new SBAccount
+                        decimal.TryParse(Console.ReadLine(),out balance);
+                        try
                         {
-                            AccountNumber = accno,
-                            CustomerName = name,
-                            CustomerAddress = address,
-                            CurrentBalance = balance
-                        };
+                            SBAccount newAcc = new SBAccount
+                            {
+                                AccountNumber = accno,
+                                CustomerName = name,
+                                CustomerAddress = address,
+                                CurrentBalance = balance
+                            };
 
-                        br.NewAccount(newAccount);
-                        Console.WriteLine("New Account created successfully.");
+                            br.NewAccount(newAcc);
+                            Console.WriteLine("New Account created successfully.");
+                        }
+                        catch(Exception x)
+                        {
+                            switch (x)
+                            {
+                                case InvalidAccNoException:
+                                    System.Console.WriteLine(x.Message);
+                                    break;
+                                case InvalidBalException:
+                                    System.Console.WriteLine(x.Message);
+                                    break;
+                            }
+                        }
 
                         break;
 
 
                     case 2:
+                        int acc;
                         try
                         {
                             Console.WriteLine("Enter Account Number:");
-                            int acc = Convert.ToInt32(Console.ReadLine());
+                            int.TryParse(Console.ReadLine(),out acc);
 
                             SBAccount account = br.GetAccountDetails(acc);
                             Console.WriteLine($"Account Details: {account.CustomerName}, {account.CustomerAddress}, Balance: {account.CurrentBalance}");
                         }
-                        catch (Exception ex)
+                        catch (InvalidAccNoException ex)
                         {
                             Console.WriteLine(ex.Message);
                         }
@@ -83,20 +119,35 @@ namespace assignment2
                         break;
 
                     case 4:
+                        decimal damt;
                         Console.WriteLine("Enter Account Number:");
                         int dacc = Convert.ToInt32(Console.ReadLine());
                         Console.WriteLine("Enter amount to be deposited:");
-                        decimal damt = decimal.Parse(Console.ReadLine());
-                        br.DepositAmount(dacc,damt);
-
+                        decimal.TryParse(Console.ReadLine(),out damt);
+                        try
+                        {
+                            br.DepositAmount(dacc,damt);
+                        } 
+                        catch(DepositException ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                        }
                         break;
 
                     case 5:
+                        decimal wamt; 
                         Console.WriteLine("Enter Account Number:");
                         int wacc = Convert.ToInt32(Console.ReadLine());
                         Console.WriteLine("Enter amount to be withdrawn:");
-                        decimal wamt = decimal.Parse(Console.ReadLine());
-                        br.WithdrawAmount(wacc,wamt);
+                        decimal.TryParse(Console.ReadLine(),out wamt);
+                        try
+                        {
+                            br.WithdrawAmount(wacc,wamt);
+                        }
+                        catch(WithdrawException ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                        }
                         break;
 
                     case 6:
@@ -113,6 +164,12 @@ namespace assignment2
                                 Console.WriteLine(sb.TransactionId+" "+sb.TransactionDate+" "+sb.AccountNumber+" "+sb.Amount+" "+sb.TransactionType);
                             }
                         }
+                        break;
+
+
+                    case 7:
+                        exit=true;
+                        Console.WriteLine("Program Exited!");
                         break;
 
                     default:
