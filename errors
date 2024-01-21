@@ -119,3 +119,24 @@ namespace flightbooking.Controllers
 
 }
 InvalidOperationException: The model item passed into the ViewDataDictionary is of type 'System.Collections.Generic.List`1[System.Boolean]', but this ViewDataDictionary instance requires a model item of type 'System.Collections.Generic.IEnumerable`1[flightbooking.Models.KritikaFlight]'.
+
+
+ public ActionResult Book()
+        {
+            // KritikaBooking kb= db.KritikaBookings.Where(x=> x.FlightId == id).SingleOrDefault();
+            var vr= db.KritikaFlights.ToList();
+            ViewBag.fdet = new SelectList(vr, "FlightId","FlightName");
+            return View();
+        }
+        [HttpPost]
+        public ActionResult Book(KritikaBooking kb)
+        {    
+            db.KritikaBookings.Add(kb);
+            var ftid= db.KritikaFlights.FirstOrDefault(x=>x.FlightId==kb.FlightId);
+            decimal? ftcharge= ftid.Price;
+            decimal total= decimal.Parse(kb.NoOfPassengers) * ftcharge;
+            db.SaveChanges();
+            // KritikaFlight kf= db.KritikaFlights.Where(x=> x.FlightId == id).SingleOrDefault();
+            // decimal finalcost = 
+            return RedirectToAction("Payment");
+        }
