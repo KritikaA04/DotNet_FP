@@ -118,3 +118,4 @@ namespace flightbooking.Controllers
     }
 
 }
+InvalidOperationException: The model item passed into the ViewDataDictionary is of type 'System.Collections.Generic.List`1[System.Boolean]', but this ViewDataDictionary instance requires a model item of type 'System.Collections.Generic.IEnumerable`1[flightbooking.Models.KritikaFlight]'.
