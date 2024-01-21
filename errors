@@ -1,0 +1,120 @@
+using Microsoft.AspNetCore.Mvc;
+// using Microsoft.EntityFrameworkCore;
+using flightbooking.Models;
+
+namespace flightbooking.Controllers
+{
+    public class CustomerController : Controller
+    {
+        readonly Ace52024Context db;
+        // public CustomerController(Ace52024Context _db)
+        // {
+        //     db=_db;
+        // }
+        private readonly ISession session;
+        public CustomerController(Ace52024Context _db, IHttpContextAccessor httpContextAccessor)
+        {
+            db = _db;
+            session = httpContextAccessor.HttpContext.Session;
+        }
+
+        public ActionResult RegisterCustomer()
+        {
+            return View();
+        }
+        [HttpPost]
+        public ActionResult RegisterCustomer(KritikaCustomer cs)
+        {
+            db.KritikaCustomers.Add(cs);
+            db.SaveChanges();
+            return RedirectToAction("Login");
+        }
+
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult Login(KritikaCustomer cs)
+        {
+            var res= (from i in db.KritikaCustomers
+                    where i.CustomerEmail== cs.CustomerEmail && i.Cpassword== cs.Cpassword
+                    select i).SingleOrDefault();
+            TempData["cloc"]= cs.Loc;
+            if(res!=null)
+            {
+                // if(res.CustomerName=="Admin")
+                // {
+                //     HttpContext.Session.SetString("customer",res.CustomerName);
+                //     return RedirectToAction("AllBookings","Booking");
+                // }
+                // else
+                // {
+                    HttpContext.Session.SetString("customer",res.CustomerName);
+                    return RedirectToAction("DisplayFlights");
+                // }
+                
+            }
+            else
+            {
+                return RedirectToAction("RegisterCustomer");
+            }
+            
+        }
+
+        public ActionResult DisplayFlights()
+        {
+            
+            var res = db.KritikaFlights.Select(x=> x.Source == TempData["cloc"]).ToList();
+            // List<KritikaFlight> dis= res;
+
+            return ViewBag(res);
+        }
+
+        public IActionResult AdminLogin()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult AdminLogin(KritikaCustomer cs)
+        {
+            var res= (from i in db.KritikaCustomers
+                    where i.CustomerEmail== cs.CustomerEmail && i.Cpassword== cs.Cpassword
+                    select i).SingleOrDefault();
+            if(res!=null && res.CustomerName=="Admin")
+            {
+                HttpContext.Session.SetString("customer",res.CustomerName);
+                return RedirectToAction("AllBookings","Booking");
+            }
+            else
+            {
+                return RedirectToAction("AdminLogin");
+            }
+        }
+
+        public IActionResult Logout()
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login");
+        }
+
+        // public ActionResult ChooseFlight()
+        // {
+        //     return View();
+        // }
+
+        // [HttpPost]
+        // public ActionResult ChooseFlight(KritikaFlight kf)
+        // {
+        //     // var res= (from i in db.
+        //     //         where i.
+        //     //         select i)
+
+        //     return RedirectToAction("");
+        // }
+
+    }
+
+}
