@@ -140,3 +140,17 @@ InvalidOperationException: The model item passed into the ViewDataDictionary is 
             // decimal finalcost = 
             return RedirectToAction("Payment");
         }
+
+
+KritikaBooking booking = new KritikaBooking
+        {
+            FlightId = flightId,
+            CustomerId = customerId,
+            DateOfTravel = dateOfTravel,
+            NoOfPassengers = noOfPassengers,
+            TotalPrice = totalPrice
+        };
+
+        // Add booking to database
+        db.KritikaBookings.Add(booking);
+        db.SaveChanges();
