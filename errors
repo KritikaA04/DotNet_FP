@@ -1,222 +1,60 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using flightbookingsys.Models;
-using Microsoft.AspNetCore.Mvc.Rendering;
+@model flightbookingsys.Models.KritikaBooking
 
-namespace flightbooking.Controllers
-{
-    public class CustomerController : Controller
-    {
-        readonly Ace52024Context db;
-        // public CustomerController(Ace52024Context _db)
-        // {
-        //     db=_db;
-        // }
-        private readonly ISession session;
-        public CustomerController(Ace52024Context _db, IHttpContextAccessor httpContextAccessor)
-        {
-            db = _db;
-            session = httpContextAccessor.HttpContext.Session;
-        }
-
-        public ActionResult RegisterCustomer()
-        {
-            return View();
-        }
-        [HttpPost]
-        public ActionResult RegisterCustomer(KritikaCustomer cs)
-        {
-            db.KritikaCustomers.Add(cs);
-            db.SaveChanges();
-            return RedirectToAction("Login");
-        }
-
-        public IActionResult Login()
-        {
-            return View();
-        }
-
-        [HttpPost]
-        public IActionResult Login(KritikaCustomer cs)
-        {
-            var res= (from i in db.KritikaCustomers
-                    where i.CustomerEmail== cs.CustomerEmail && i.Password== cs.Password 
-                    select i).SingleOrDefault();
-                    // .Select(i=> new KritikaCustomer {CustomerName = i.CustomerName, Loc=i.Loc})
-            
-            if(res!=null)
-            {
-                // if(res.CustomerName=="Admin")
-                // {
-                //     HttpContext.Session.SetString("customer",res.CustomerName);
-                //     return RedirectToAction("AllBookings","Booking");
-                // }
-                // else
-                // {
-                    string location = res.Loc;
-                    TempData["cloc"]= location;
-                    int ccid= res.CustomerId;
-                    TempData["ctid"]= ccid;
-                    HttpContext.Session.SetString("customer",res.CustomerName);
-                    return RedirectToAction("DisplayFlights");
-                    
-                // }
-                
-            }
-            else
-            {
-                return RedirectToAction("RegisterCustomer");
-            }
-            
-        }
-
-        public ActionResult DisplayFlights(string Csource, string Cdestination)
-        {
-            var vr= db.KritikaFlights.ToList();
-            List<string?> sourcef= db.KritikaFlights.Select(f=>f.Source).Distinct().ToList();
-            List<string?> destf= db.KritikaFlights.Select(f=>f.Destination).Distinct().ToList();
-            // ViewBag.fdes = new SelectList(vr, "FlightId","Source");
-            ViewBag.fdes = new SelectList(sourcef);
-            ViewBag.fded = new SelectList(destf);
-
-            if(!String.IsNullOrEmpty(Csource) && !(String.IsNullOrEmpty(Cdestination) ))
-            {
-                var sc = db.KritikaFlights.Where(x=> x.Source == Csource && x.Destination == Cdestination).ToList();
-                // var ds = db.KritikaFlights.Where(x=> x.Destination == Cdestination).ToList();
-                return View(sc);
-            }
-            else
-            {
-                 string locs= TempData["cloc"].ToString();
-                if(String.IsNullOrEmpty(locs))
-                {
-                    return Content("Sorry! Currently no flights from your location!");
-                }
-                var ress = db.KritikaFlights.Where(x=> x.Source == locs).ToList();
-                // List<KritikaFlight> dis= res;
-                return View(ress);
-            }
-
-            string locc= TempData["cloc"].ToString();
-            if(String.IsNullOrEmpty(locc))
-            {
-                return Content("Sorry! Currently no flights from your location!");
-            }
-            var res = db.KritikaFlights.Where(x=> x.Source == locc).ToList();
-            // List<KritikaFlight> dis= res;
-            return View(res);
-        }
-
-        public IActionResult AdminLogin()
-        {
-            return View();
-        }
-
-        [HttpPost]
-        public IActionResult AdminLogin(KritikaCustomer cs)
-        {
-            var res= (from i in db.KritikaCustomers
-                    where i.CustomerEmail== cs.CustomerEmail && i.Password== cs.Password
-                    select i).SingleOrDefault();
-            if(res!=null && res.CustomerName=="Admin")
-            {
-                HttpContext.Session.SetString("customer",res.CustomerName);
-                return RedirectToAction("AllBookings","Booking");
-            }
-            else
-            {
-                return RedirectToAction("AdminLogin");
-            }
-        }
-
-        public IActionResult Logout()
-        {
-            HttpContext.Session.Clear();
-            return RedirectToAction("Login");
-        }
-
-        // public ActionResult ChooseFlight()
-        // {
-        //     return View();
-        // }
-
-        // [HttpPost]
-        // public ActionResult ChooseFlight(KritikaFlight kf)
-        // {
-        //     // var res= (from i in db.
-        //     //         where i.
-        //     //         select i)
-
-        //     return RedirectToAction("");
-        // }
-
-        public ActionResult Book()
-        {
-            // KritikaBooking kb= db.KritikaBookings.Where(x=> x.FlightId == id).SingleOrDefault();
-            var vr= db.KritikaFlights.ToList();
-            ViewBag.fdet = new SelectList(vr, "FlightId","FlightName");
-            return View();
-        }
-        [HttpPost]
-        public ActionResult Book(KritikaBooking kb)
-        {    
-            // db.KritikaBookings.Add(kb);
-            var ftid= db.KritikaFlights.FirstOrDefault(x=>x.FlightId==kb.FlightId);
-            decimal? ftcharge= ftid.Price;
-            decimal? total= kb.NoOfPassengers * ftcharge;
-            KritikaBooking booking = new KritikaBooking
-            {
-                FlightId = kb.FlightId,
-                CustomerId = kb.CustomerId,
-                BookingDate = kb.BookingDate,
-                NoOfPassengers = kb.NoOfPassengers,
-                TotalPrice = total
-            };
-            int ccid=Convert.ToInt32(TempData["ctid"]);
-            if(booking.CustomerId==ccid)
-            {
-                db.KritikaBookings.Add(booking);
-                db.SaveChanges();
-            }
-            else
-            {
-                return RedirectToAction("Login");
-            }
-            int bid= booking.BookingId;
-            TempData["bkid"]=bid;
-            // KritikaFlight kf= db.KritikaFlights.Where(x=> x.FlightId == id).SingleOrDefault();
-            // decimal finalcost = 
-            return RedirectToAction("Payment");
-        }
-
-        public ActionResult Payment()
-        {   
-            int bkid = Convert.ToInt32(TempData["bkid"]);
-            var res= db.KritikaBookings.Where(x=> x.BookingId == bkid).ToList();
-            return View(res);
-        }
-
-        // [HttpPost]
-        // public ActionResult Payment(KritikaBooking kbt)
-        // {
-            
-        //     return View(res);
-        // }
-        
-
-
-    }
-
+@{
+    ViewData["Title"] = "Book";
 }
 
+<h1>Book your flight!</h1>
 
+@* <h4>KritikaBooking</h4> *@
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Book">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            @* <div class="form-group">
+                <label asp-for="BookingId" class="control-label"></label>
+                <input asp-for="BookingId" class="form-control" />
+                <span asp-validation-for="BookingId" class="text-danger"></span>
+            </div> *@
+            <div class="form-group">
+                <label asp-for="FlightId" class="control-label"></label>
+                @* <input asp-for="FlightId" class="form-control" /> *@
+                <select asp-for="FlightId" class="form-control" asp-items=@(ViewBag.fdet)></select>
+                <span asp-validation-for="FlightId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CustomerId" class="control-label"></label>
+                <input asp-for="CustomerId" class="form-control" />
+                <span asp-validation-for="CustomerId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="BookingDate" class="control-label"></label>
+                <input asp-for="BookingDate" class="form-control" />
+                <span asp-validation-for="BookingDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="NoOfPassengers" class="control-label"></label>
+                <input asp-for="NoOfPassengers" class="form-control" />
+                <span asp-validation-for="NoOfPassengers" class="text-danger"></span>
+            </div>
+            <br><br>
+            @* <div class="form-group">
+                <label asp-for="TotalPrice" class="control-label"></label>
+                <input asp-for="TotalPrice" class="form-control" />
+                <span asp-validation-for="TotalPrice" class="text-danger"></span>
+            </div> *@
+            <div class="form-group">
+                <input type="submit" value="Proceed to Pay" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
 
-create table KritikaFlights
-(
-FlightId int primary key,
-FlightName varchar(15),
-Airline varchar(15),
-Source varchar(15),
-Destination varchar(15),
-Price decimal
-)
+@* <div>
+    <a asp-action="Index">Back to List</a>
+</div> *@
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
