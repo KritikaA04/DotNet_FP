@@ -1,3 +1,21 @@
+[HttpPost]
+    public IActionResult FilterFlights(int selectedFlightId)
+    {
+        // Perform filtering logic based on the selectedFlightId
+        var filteredFlights = allFlights;
+
+        if (selectedFlightId > 0)
+        {
+            // Filter the flights based on the selected flight ID
+            filteredFlights = allFlights.Where(f => f.FlightId == selectedFlightId).ToList();
+        }
+
+        // Return the filtered data to the view
+        return View("DisplayFlights", filteredFlights);
+    }
+
+
+
 @* using flightbookingsys.Models; *@
 @model IEnumerable<flightbookingsys.Models.KritikaFlight>
    
