@@ -8,6 +8,21 @@
 
 <h1>All Available flights from your location!</h1>
 
+<div>
+    @using (Html.BeginForm("FilterFlights", "YourController", FormMethod.Post))
+    {
+        @Html.Label("Select Flight:")
+        @Html.DropDownList("selectedFlightId", (IEnumerable<SelectListItem>)ViewBag.FlightList, "Select a flight", new { @class = "form-control" })
+        <input type="submit" value="Filter" class="btn btn-primary" />
+    }
+</div>
+
+<h1>All Available flights from your location!</h1>
+
+<table class="table">
+    <!-- Table header and body remain unchanged -->
+</table>
+
 <p class="para">
     @* <a asp-action="Create">Create New</a> *@
     @Html.DropDownList("Source", (IEnumerable<SelectListItem>)ViewBag.fdes, "Select another Source")
