@@ -1,9 +1,7 @@
-("YourDropDownName", (IEnumerable<SelectListItem>)ViewBag.MySelectList, "Select an item")
-
-
 using Microsoft.AspNetCore.Mvc;
-// using Microsoft.EntityFrameworkCore;
-using flightbooking.Models;
+using Microsoft.EntityFrameworkCore;
+using flightbookingsys.Models;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace flightbooking.Controllers
 {
@@ -42,9 +40,10 @@ namespace flightbooking.Controllers
         public IActionResult Login(KritikaCustomer cs)
         {
             var res= (from i in db.KritikaCustomers
-                    where i.CustomerEmail== cs.CustomerEmail && i.Cpassword== cs.Cpassword
+                    where i.CustomerEmail== cs.CustomerEmail && i.Password== cs.Password 
                     select i).SingleOrDefault();
-            TempData["cloc"]= cs.Loc;
+                    // .Select(i=> new KritikaCustomer {CustomerName = i.CustomerName, Loc=i.Loc})
+            
             if(res!=null)
             {
                 // if(res.CustomerName=="Admin")
@@ -54,8 +53,13 @@ namespace flightbooking.Controllers
                 // }
                 // else
                 // {
+                    string location = res.Loc;
+                    TempData["cloc"]= location;
+                    int ccid= res.CustomerId;
+                    TempData["ctid"]= ccid;
                     HttpContext.Session.SetString("customer",res.CustomerName);
                     return RedirectToAction("DisplayFlights");
+                    
                 // }
                 
             }
@@ -66,13 +70,41 @@ namespace flightbooking.Controllers
             
         }
 
-        public ActionResult DisplayFlights()
+        public ActionResult DisplayFlights(string Csource, string Cdestination)
         {
-            
-            var res = db.KritikaFlights.Select(x=> x.Source == TempData["cloc"]).ToList();
-            // List<KritikaFlight> dis= res;
+            var vr= db.KritikaFlights.ToList();
+            List<string?> sourcef= db.KritikaFlights.Select(f=>f.Source).Distinct().ToList();
+            List<string?> destf= db.KritikaFlights.Select(f=>f.Destination).Distinct().ToList();
+            // ViewBag.fdes = new SelectList(vr, "FlightId","Source");
+            ViewBag.fdes = new SelectList(sourcef);
+            ViewBag.fded = new SelectList(destf);
 
-            return ViewBag(res);
+            if(!String.IsNullOrEmpty(Csource) && !(String.IsNullOrEmpty(Cdestination) ))
+            {
+                var sc = db.KritikaFlights.Where(x=> x.Source == Csource && x.Destination == Cdestination).ToList();
+                // var ds = db.KritikaFlights.Where(x=> x.Destination == Cdestination).ToList();
+                return View(sc);
+            }
+            else
+            {
+                 string locs= TempData["cloc"].ToString();
+                if(String.IsNullOrEmpty(locs))
+                {
+                    return Content("Sorry! Currently no flights from your location!");
+                }
+                var ress = db.KritikaFlights.Where(x=> x.Source == locs).ToList();
+                // List<KritikaFlight> dis= res;
+                return View(ress);
+            }
+
+            string locc= TempData["cloc"].ToString();
+            if(String.IsNullOrEmpty(locc))
+            {
+                return Content("Sorry! Currently no flights from your location!");
+            }
+            var res = db.KritikaFlights.Where(x=> x.Source == locc).ToList();
+            // List<KritikaFlight> dis= res;
+            return View(res);
         }
 
         public IActionResult AdminLogin()
@@ -84,7 +116,7 @@ namespace flightbooking.Controllers
         public IActionResult AdminLogin(KritikaCustomer cs)
         {
             var res= (from i in db.KritikaCustomers
-                    where i.CustomerEmail== cs.CustomerEmail && i.Cpassword== cs.Cpassword
+                    where i.CustomerEmail== cs.CustomerEmail && i.Password== cs.Password
                     select i).SingleOrDefault();
             if(res!=null && res.CustomerName=="Admin")
             {
@@ -118,13 +150,7 @@ namespace flightbooking.Controllers
         //     return RedirectToAction("");
         // }
 
-    }
-
-}
-InvalidOperationException: The model item passed into the ViewDataDictionary is of type 'System.Collections.Generic.List`1[System.Boolean]', but this ViewDataDictionary instance requires a model item of type 'System.Collections.Generic.IEnumerable`1[flightbooking.Models.KritikaFlight]'.
-
-
- public ActionResult Book()
+        public ActionResult Book()
         {
             // KritikaBooking kb= db.KritikaBookings.Where(x=> x.FlightId == id).SingleOrDefault();
             var vr= db.KritikaFlights.ToList();
@@ -134,26 +160,63 @@ InvalidOperationException: The model item passed into the ViewDataDictionary is 
         [HttpPost]
         public ActionResult Book(KritikaBooking kb)
         {    
-            db.KritikaBookings.Add(kb);
+            // db.KritikaBookings.Add(kb);
             var ftid= db.KritikaFlights.FirstOrDefault(x=>x.FlightId==kb.FlightId);
             decimal? ftcharge= ftid.Price;
-            decimal total= decimal.Parse(kb.NoOfPassengers) * ftcharge;
-            db.SaveChanges();
+            decimal? total= kb.NoOfPassengers * ftcharge;
+            KritikaBooking booking = new KritikaBooking
+            {
+                FlightId = kb.FlightId,
+                CustomerId = kb.CustomerId,
+                BookingDate = kb.BookingDate,
+                NoOfPassengers = kb.NoOfPassengers,
+                TotalPrice = total
+            };
+            int ccid=Convert.ToInt32(TempData["ctid"]);
+            if(booking.CustomerId==ccid)
+            {
+                db.KritikaBookings.Add(booking);
+                db.SaveChanges();
+            }
+            else
+            {
+                return RedirectToAction("Login");
+            }
+            int bid= booking.BookingId;
+            TempData["bkid"]=bid;
             // KritikaFlight kf= db.KritikaFlights.Where(x=> x.FlightId == id).SingleOrDefault();
             // decimal finalcost = 
             return RedirectToAction("Payment");
         }
 
+        public ActionResult Payment()
+        {   
+            int bkid = Convert.ToInt32(TempData["bkid"]);
+            var res= db.KritikaBookings.Where(x=> x.BookingId == bkid).ToList();
+            return View(res);
+        }
 
-KritikaBooking booking = new KritikaBooking
-        {
-            FlightId = flightId,
-            CustomerId = customerId,
-            DateOfTravel = dateOfTravel,
-            NoOfPassengers = noOfPassengers,
-            TotalPrice = totalPrice
-        };
+        // [HttpPost]
+        // public ActionResult Payment(KritikaBooking kbt)
+        // {
+            
+        //     return View(res);
+        // }
+        
 
-        // Add booking to database
-        db.KritikaBookings.Add(booking);
-        db.SaveChanges();
+
+    }
+
+}
+
+
+
+create table KritikaFlights
+(
+FlightId int primary key,
+FlightName varchar(15),
+Airline varchar(15),
+Source varchar(15),
+Destination varchar(15),
+Price decimal
+)
