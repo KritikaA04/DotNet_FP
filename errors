@@ -1,3 +1,6 @@
+An unhandled exception occurred while processing the request.
+InvalidOperationException: The 'Microsoft.AspNetCore.Mvc.ViewFeatures.Infrastructure.DefaultTempDataSerializer' cannot serialize an object of type 'System.Decimal'.
+Microsoft.AspNetCore.Mvc.ViewFeatures.Infrastructure.DefaultTempDataSerializer.Serialize(IDictionary<string, object> values)
 @model flightbookingsys.Models.KritikaBooking
 
 @{
