@@ -1,3 +1,6 @@
+("YourDropDownName", (IEnumerable<SelectListItem>)ViewBag.MySelectList, "Select an item")
+
+
 using Microsoft.AspNetCore.Mvc;
 // using Microsoft.EntityFrameworkCore;
 using flightbooking.Models;
