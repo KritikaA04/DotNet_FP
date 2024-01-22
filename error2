@@ -1,24 +1,6 @@
-[HttpPost]
-    public IActionResult FilterFlights(int selectedFlightId)
-    {
-        // Perform filtering logic based on the selectedFlightId
-        var filteredFlights = allFlights;
-
-        if (selectedFlightId > 0)
-        {
-            // Filter the flights based on the selected flight ID
-            filteredFlights = allFlights.Where(f => f.FlightId == selectedFlightId).ToList();
-        }
-
-        // Return the filtered data to the view
-        return View("DisplayFlights", filteredFlights);
-    }
-
-
-
 @* using flightbookingsys.Models; *@
 @model IEnumerable<flightbookingsys.Models.KritikaFlight>
-   
+@* @model KritikaFlight    *@
 
 @{
     ViewData["Title"] = "DisplayFlights";
@@ -26,26 +8,13 @@
 
 <h1>All Available flights from your location!</h1>
 
-<div>
-    @using (Html.BeginForm("FilterFlights", "YourController", FormMethod.Post))
-    {
-        @Html.Label("Select Flight:")
-        @Html.DropDownList("selectedFlightId", (IEnumerable<SelectListItem>)ViewBag.FlightList, "Select a flight", new { @class = "form-control" })
-        <input type="submit" value="Filter" class="btn btn-primary" />
-    }
-</div>
-
-<h1>All Available flights from your location!</h1>
-
-<table class="table">
-    <!-- Table header and body remain unchanged -->
-</table>
-
-<p class="para">
+@* <p class="para">
     @* <a asp-action="Create">Create New</a> *@
-    @Html.DropDownList("Source", (IEnumerable<SelectListItem>)ViewBag.fdes, "Select another Source")
-    @Html.DropDownList("Destination", (IEnumerable<SelectListItem>)ViewBag.fded, "Select another ")
-</p>
+    @* @Html.DropDownList("Source", (IEnumerable<SelectListItem>)ViewBag.fdes, "Select another Source")
+    @Html.DropDownList("Destination", (IEnumerable<SelectListItem>)ViewBag.fded, "Select another ") *@
+@* </p> , new { @class = "form-control" }*@
+
+
 @* <div>
     <select asp-for="FlightId" class="form-control" asp-items=@(ViewBag.fdet)></select>
 </div> *@
@@ -104,3 +73,21 @@
 }
     </tbody>
 </table>
+
+
+<div>
+    @using (Html.BeginForm("DisplayFlights", "Customer", FormMethod.Post))
+    {
+        @Html.Label("Find Other Flights:")<br>
+        @Html.DropDownList("Csource" , (IEnumerable<SelectListItem>)ViewBag.fdes, "Select another source")
+        <input type="submit" value="Confirm Source" class="btn btn-primary" />
+    }
+    <br>
+    @using (Html.BeginForm("FilterFlights", "YourController", FormMethod.Post))
+    {
+        @* @Html.Label("Find Other Flights:") *@
+        @Html.DropDownList("Cdestination", (IEnumerable<SelectListItem>)ViewBag.fded, "Select another source")
+            <br>
+        <input type="submit" value="Confirm Destination" class="btn btn-primary" />
+    }
+</div>
