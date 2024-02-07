@@ -1,0 +1,66 @@
+﻿@model flightmvc.Models.KritikaFlight
+
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome! Book your next travel tickets now!</h1>
+    @* <form>
+        <select class="dropdown" style="color:black;padding-bottom: 5px;padding-top:5px; margin-top:5px;margin-bottom:5px;" asp-for="Source" asp-items="@ViewBag.fdes"></select>        
+        <select class="dropdown" style="color:black;padding-bottom: 5px;padding-top:5px;margin-top:5px;margin-bottom:5px;" asp-for="Destination" asp-items="@ViewBag.fded"></select>
+               
+    </form> *@
+</div>
+
+<div>
+    @* <form asp-action="FindFlights">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="form-group">
+            <label asp-for="Source" class="control-label"></label>
+            <select class="form-control"  asp-for="Source" asp-items="@ViewBag.Sources"></select>
+            <span asp-validation-for="Source" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="Destination" class="control-label"></label>
+            <select class="form-control" asp-for="Destination" asp-items="@ViewBag.Destinations"></select>
+            <span asp-validation-for="Destination" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <input type="submit" value="Find Flights" class="btn btn-primary" asp-action="FindFlights" asp-controller="Home"/>
+        </div>
+    </form> *@
+    @* <div class="form-control">
+        @using (Html.BeginForm("ShowFlight", "Flight", FormMethod.Post))
+        {
+            @Html.Label("Search Flights: ")<br>
+            @Html.DropDownList("Csource" , (IEnumerable<SelectListItem>)ViewBag.Sources, "Select source")<br><br>
+            @Html.DropDownList("Cdestination", (IEnumerable<SelectListItem>)ViewBag.Destinations, "Select source")<br><br>
+            <input type="submit" value="Find Flights" class="btn btn-primary" />
+        }
+    </div> *@
+
+    <div class="container">
+        @using (Html.BeginForm("ShowFlight", "Flight", FormMethod.Post))
+        {
+            <div class="row justify-content-center">
+                <div class="col-md-3">
+                    <h3>@Html.Label("Search Flights")</h3>
+                </div>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-md-3">
+                    @Html.DropDownList("Csource", (IEnumerable<SelectListItem>)ViewBag.Sources, "Select source", new { @class = "form-control" })
+                </div>
+                <div class="col-md-3">
+                    @Html.DropDownList("Cdestination", (IEnumerable<SelectListItem>)ViewBag.Destinations, "Select destination", new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="row justify-content-center mt-4">
+                <div class="col-md-6">
+                    <input type="submit" value="Find Flights" class="btn btn-primary" />
+                </div>
+            </div>
+        }
+    </div>
+</div>
